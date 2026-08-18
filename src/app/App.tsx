@@ -6,7 +6,9 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import BootSplash from 'react-native-bootsplash';
+import { Provider } from 'react-redux';
 import { ThemeProvider, useTheme } from '../theme';
+import { store } from './store';
 
 function App(): React.JSX.Element {
   useEffect(() => {
@@ -14,11 +16,13 @@ function App(): React.JSX.Element {
   }, []);
 
   return (
-    <SafeAreaProvider>
-      <ThemeProvider>
-        <AppContent />
-      </ThemeProvider>
-    </SafeAreaProvider>
+    <Provider store={store}>
+      <SafeAreaProvider>
+        <ThemeProvider>
+          <AppContent />
+        </ThemeProvider>
+      </SafeAreaProvider>
+    </Provider>
   );
 }
 
