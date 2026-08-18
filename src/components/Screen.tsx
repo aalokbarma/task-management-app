@@ -1,18 +1,20 @@
 import React from 'react';
 import { ScrollView, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Edge, SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../theme';
 
 interface ScreenProps {
   children: React.ReactNode;
   scroll?: boolean;
   style?: StyleProp<ViewStyle>;
+  edges?: Edge[];
 }
 
 export function Screen({
   children,
   scroll = false,
   style,
+  edges = ['bottom', 'left', 'right'],
 }: ScreenProps): React.JSX.Element {
   const theme = useTheme();
   const padding = { padding: theme.spacing.md };
@@ -20,7 +22,7 @@ export function Screen({
   return (
     <SafeAreaView
       style={[styles.safeArea, { backgroundColor: theme.colors.background }]}
-      edges={['top', 'bottom', 'left', 'right']}
+      edges={edges}
     >
       {scroll ? (
         <ScrollView
