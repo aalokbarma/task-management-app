@@ -1,27 +1,36 @@
-import React from 'react';
-import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
+import React, { useEffect } from 'react';
+import { StatusBar, StyleSheet, View } from 'react-native';
 import { NewAppScreen } from '@react-native/new-app-screen';
 import {
   SafeAreaProvider,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
+import BootSplash from 'react-native-bootsplash';
+import { ThemeProvider, useTheme } from '../theme';
 
 function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
+  useEffect(() => {
+    BootSplash.hide({ fade: true });
+  }, []);
 
   return (
     <SafeAreaProvider>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <AppContent />
+      <ThemeProvider>
+        <AppContent />
+      </ThemeProvider>
     </SafeAreaProvider>
   );
 }
 
 function AppContent(): React.JSX.Element {
   const safeAreaInsets = useSafeAreaInsets();
+  const theme = useTheme();
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <StatusBar
+        barStyle={theme.scheme === 'dark' ? 'light-content' : 'dark-content'}
+      />
       <NewAppScreen
         templateFileName="App.tsx"
         safeAreaInsets={safeAreaInsets}
