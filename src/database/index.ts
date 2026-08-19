@@ -2,9 +2,19 @@ export { mapTask } from './mappers/taskMapper';
 export {
   closeRealm,
   getOpenedRealmUserId,
-  getRealm,
   isRealmOpen,
   openRealm,
   REALM_SCHEMA_VERSION,
 } from './realm';
 export { TaskObject } from './schemas/TaskObject';
+export {
+  createTask,
+  deleteTask,
+  getTask,
+  listPendingSyncTasks,
+  listTasks,
+  markTaskFailed,
+  markTaskSynced,
+  setTaskCompleted,
+  updateTask,
+} from './taskRepository';
