@@ -93,8 +93,16 @@ const authSlice = createSlice({
       state.error = rejectedAuthError(action.payload);
       state.isSubmitting = false;
     });
+    builder.addCase(signOutRequested.pending, state => {
+      state.error = null;
+      state.isSubmitting = true;
+    });
+    builder.addCase(signOutRequested.fulfilled, state => {
+      state.isSubmitting = false;
+    });
     builder.addCase(signOutRequested.rejected, (state, action) => {
       state.error = rejectedAuthError(action.payload);
+      state.isSubmitting = false;
     });
   },
 });

@@ -43,10 +43,27 @@ async function applyAuthState(
 
   try {
     await openRealm(user.id);
+    const currentUser = getCurrentUser();
+    if (currentUser?.id !== user.id) {
+      if (!currentUser) {
+        closeRealm();
+      }
+      return;
+    }
+
     dispatch(authSucceeded(user));
   } catch (error) {
     logger.error(error, 'auth.openRealm');
     closeRealm();
+
+    const currentUser = getCurrentUser();
+    if (!currentUser || currentUser.id !== user.id) {
+      if (!currentUser) {
+        dispatch(authSignedOut());
+      }
+      return;
+    }
+
     dispatch(
       authFailed(
         createAppError(

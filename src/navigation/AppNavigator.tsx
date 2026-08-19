@@ -1,5 +1,6 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { SettingsHeaderButton } from '../features/settings/components/SettingsHeaderButton';
 import { useTheme } from '../theme';
 import type { AppStackParamList } from '../types';
 import { lazyScreen } from './lazyScreen';
@@ -30,7 +31,7 @@ export function AppNavigator(): React.JSX.Element {
       <Stack.Screen
         name="TaskList"
         component={TaskListScreen}
-        options={{ title: 'Tasks' }}
+        options={{ title: 'Tasks', headerRight: SettingsHeaderButton }}
       />
       <Stack.Screen
         name="TaskDetail"

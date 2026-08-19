@@ -27,13 +27,7 @@ export default function TaskListScreen({
       <Button
         label="Open a task"
         variant="secondary"
-        style={{ marginBottom: theme.spacing.sm }}
         onPress={() => navigation.navigate('TaskDetail', { taskId: 'demo' })}
-      />
-      <Button
-        label="Settings"
-        variant="secondary"
-        onPress={() => navigation.navigate('Settings')}
       />
     </Screen>
   );
