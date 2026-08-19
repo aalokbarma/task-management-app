@@ -3,6 +3,7 @@ import { Text } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
 import { Button, Screen } from '../../../components';
+import { ThemeModePicker } from '../components/ThemeModePicker';
 import {
   selectAuthError,
   selectAuthUser,
@@ -62,6 +63,7 @@ export default function SettingsScreen(_props: Props): React.JSX.Element {
       >
         {user?.email || 'Your account'}
       </Text>
+      <ThemeModePicker />
       {error ? (
         <Text
           style={{

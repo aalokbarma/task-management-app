@@ -7,6 +7,7 @@ import {
   startAuthSession,
   stopAuthSession,
 } from '../features/auth/authSession';
+import { startThemePreference } from '../features/theme/themeThunks';
 import { RootNavigator } from '../navigation';
 import {
   startConnectivityListener,
@@ -41,6 +42,7 @@ function AppContent(): React.JSX.Element {
   const theme = useTheme();
 
   useEffect(() => {
+    startThemePreference(store.dispatch);
     startConnectivityListener(store.dispatch);
     startAuthSession(store.dispatch);
     startSyncService();
