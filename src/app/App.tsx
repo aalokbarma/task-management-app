@@ -1,9 +1,13 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StatusBar } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider } from 'react-redux';
 import { getFirebaseApp } from '../config/firebase';
 import { RootNavigator } from '../navigation';
+import {
+  startConnectivityListener,
+  stopConnectivityListener,
+} from '../services/connectivity';
 import { ThemeProvider, useTheme } from '../theme';
 import { store } from './store';
 
@@ -23,6 +27,11 @@ function App(): React.JSX.Element {
 
 function AppContent(): React.JSX.Element {
   const theme = useTheme();
+
+  useEffect(() => {
+    startConnectivityListener(store.dispatch);
+    return stopConnectivityListener;
+  }, []);
 
   return (
     <>

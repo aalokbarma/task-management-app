@@ -30,4 +30,8 @@ export const { connectivityChanged } = connectivitySlice.actions;
 export const selectIsOnline = (state: RootState): boolean =>
   state.connectivity.isOnline;
 
+export const selectIsInternetReachable = (
+  state: RootState,
+): boolean | null => state.connectivity.isInternetReachable;
+
 export default connectivitySlice.reducer;
