@@ -1,12 +1,7 @@
 import React, { useRef, useState } from 'react';
-import {
-  KeyboardAvoidingView,
-  Platform,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Text, View } from 'react-native';
 import { Button, Input, Screen } from '../../../components';
+import { OfflineBanner } from '../../connectivity/OfflineBanner';
 import { useTheme } from '../../../theme';
 import type { AppError, CreateTaskInput, SyncStatus, UpdateTaskInput } from '../../../types';
 import { syncStatusLabel } from '../syncStatusLabel';
@@ -118,11 +113,8 @@ export function TaskForm({
 
   return (
     <Screen scroll>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={styles.avoider}
-      >
-        <Text
+      <OfflineBanner />
+      <Text
           style={{
             color: theme.colors.text,
             fontSize: theme.typography.h2.fontSize,
@@ -222,13 +214,6 @@ export function TaskForm({
             />
           </View>
         ) : null}
-      </KeyboardAvoidingView>
     </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  avoider: {
-    flexGrow: 1,
-  },
-});

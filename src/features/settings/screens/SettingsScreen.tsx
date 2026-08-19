@@ -31,7 +31,7 @@ export default function SettingsScreen(_props: Props): React.JSX.Element {
   }
 
   return (
-    <Screen>
+    <Screen scroll>
       <Text
         style={{
           color: theme.colors.text,

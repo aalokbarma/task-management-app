@@ -16,6 +16,7 @@ export function TaskListHeaderRight(): React.JSX.Element {
       <Pressable
         accessibilityRole="button"
         accessibilityLabel="Add task"
+        hitSlop={8}
         onPress={() => navigation.navigate('TaskDetail')}
         style={{ paddingHorizontal: theme.spacing.xs }}
       >

@@ -14,6 +14,7 @@ export function SettingsHeaderButton(): React.JSX.Element {
     <Pressable
       accessibilityRole="button"
       accessibilityLabel="Settings"
+      hitSlop={8}
       onPress={() => navigation.navigate('Settings')}
       style={{ paddingHorizontal: theme.spacing.xs }}
     >

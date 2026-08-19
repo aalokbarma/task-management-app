@@ -28,6 +28,9 @@ export function Screen({
     >
       {scroll ? (
         <ScrollView
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+          automaticallyAdjustKeyboardInsets
           contentContainerStyle={[styles.scrollContent, padding, style]}
         >
           {children}

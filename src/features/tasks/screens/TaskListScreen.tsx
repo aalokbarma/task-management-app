@@ -12,7 +12,7 @@ import {
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
 import { EmptyState, ErrorView, Loader, Screen } from '../../../components';
-import { selectIsOnline } from '../../connectivity/connectivitySlice';
+import { OfflineBanner } from '../../connectivity/OfflineBanner';
 import { useTheme } from '../../../theme';
 import type { AppStackParamList, Task } from '../../../types';
 import { TaskItem } from '../components/TaskItem';
@@ -46,7 +46,6 @@ export default function TaskListScreen({
   const theme = useTheme();
   const dispatch = useAppDispatch();
   const filter = useAppSelector(selectTaskFilter);
-  const isOnline = useAppSelector(selectIsOnline);
   const { tasks, isLoading, isRefreshing, error, reload, refresh } =
     useTaskList();
 
@@ -110,28 +109,7 @@ export default function TaskListScreen({
     [onDelete, onTaskPress, onToggleComplete],
   );
 
-  function emptyCopy(): { title: string; description: string } {
-    if (filter === 'completed') {
-      return {
-        title: 'No completed tasks',
-        description: 'Completed tasks will show up here.',
-      };
-    }
-
-    if (filter === 'active') {
-      return {
-        title: 'No active tasks',
-        description: 'Add a task to get started.',
-      };
-    }
-
-    return {
-      title: 'No tasks yet',
-      description: 'Add a task to keep it on this device, even offline.',
-    };
-  }
-
-  function listEmpty(): React.JSX.Element {
+  const listEmpty = useCallback(() => {
     if (isLoading) {
       return (
         <View style={styles.emptyWrap}>
@@ -148,7 +126,7 @@ export default function TaskListScreen({
       );
     }
 
-    const copy = emptyCopy();
+    const copy = emptyCopy(filter);
     return (
       <View style={styles.emptyWrap}>
         <EmptyState
@@ -163,25 +141,14 @@ export default function TaskListScreen({
         />
       </View>
     );
-  }
+  }, [error, filter, isLoading, navigation, reload]);
 
   return (
     <Screen
       padded={false}
       style={{ paddingHorizontal: theme.spacing.md }}
     >
-      {!isOnline ? (
-        <Text
-          style={{
-            color: theme.colors.warning,
-            fontSize: theme.typography.caption.fontSize,
-            lineHeight: theme.typography.caption.lineHeight,
-            marginBottom: theme.spacing.sm,
-          }}
-        >
-          You're offline. Changes are saved on this device.
-        </Text>
-      ) : null}
+      <OfflineBanner />
       <View style={[styles.filters, { marginBottom: theme.spacing.sm }]}>
         {FILTERS.map(option => {
           const selected = option.id === filter;
@@ -190,6 +157,7 @@ export default function TaskListScreen({
               key={option.id}
               accessibilityRole="button"
               accessibilityState={{ selected }}
+              hitSlop={8}
               onPress={() => dispatch(taskFilterChanged(option.id))}
               style={[
                 styles.filterChip,
@@ -223,10 +191,11 @@ export default function TaskListScreen({
         })}
       </View>
       <FlatList
+        style={styles.list}
         data={visibleTasks}
         keyExtractor={taskKeyExtractor}
         renderItem={renderItem}
-        ListEmptyComponent={listEmpty()}
+        ListEmptyComponent={listEmpty}
         ItemSeparatorComponent={ItemSeparator}
         refreshControl={
           <RefreshControl
@@ -243,10 +212,32 @@ export default function TaskListScreen({
         initialNumToRender={12}
         windowSize={8}
         maxToRenderPerBatch={8}
+        removeClippedSubviews={false}
         keyboardShouldPersistTaps="handled"
       />
     </Screen>
   );
+}
+
+function emptyCopy(filter: TaskFilter): { title: string; description: string } {
+  if (filter === 'completed') {
+    return {
+      title: 'No completed tasks',
+      description: 'Completed tasks will show up here.',
+    };
+  }
+
+  if (filter === 'active') {
+    return {
+      title: 'No active tasks',
+      description: 'Add a task to get started.',
+    };
+  }
+
+  return {
+    title: 'No tasks yet',
+    description: 'Add a task to keep it on this device, even offline.',
+  };
 }
 
 function ItemSeparator(): React.JSX.Element {
@@ -255,6 +246,9 @@ function ItemSeparator(): React.JSX.Element {
 }
 
 const styles = StyleSheet.create({
+  list: {
+    flex: 1,
+  },
   filters: {
     flexDirection: 'row',
     flexWrap: 'wrap',

@@ -29,6 +29,7 @@ function TaskItemComponent({
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
+      accessibilityHint="Opens the task. Long press to delete."
       onPress={() => onPress(task.id)}
       onLongPress={() => onDelete(task.id)}
       style={({ pressed }) => [

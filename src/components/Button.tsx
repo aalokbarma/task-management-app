@@ -61,6 +61,7 @@ export function Button({
           borderRadius: theme.radii.md,
           paddingVertical: theme.spacing.sm,
           paddingHorizontal: theme.spacing.md,
+          minHeight: 44,
           opacity: isDisabled ? 0.5 : pressed ? 0.8 : 1,
         },
         style,

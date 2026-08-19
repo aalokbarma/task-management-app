@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { listTasks, subscribeToTasks } from '../../../database/taskRepository';
+import { requestSync } from '../../../services/sync';
 import type { AppError, Task } from '../../../types';
 
 export interface TaskListState {
@@ -52,6 +53,7 @@ export function useTaskList(): TaskListState {
 
   function refresh(): void {
     setIsRefreshing(true);
+    requestSync();
     const result = listTasks();
     applyListResult(result, setTasks, setError);
     setIsRefreshing(false);

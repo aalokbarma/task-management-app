@@ -1,11 +1,5 @@
 import React, { useRef, useState } from 'react';
-import {
-  KeyboardAvoidingView,
-  Platform,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Text, View } from 'react-native';
 import { Button, Input, Screen } from '../../../components';
 import { validateCredentials } from '../../../services/auth';
 import { useTheme } from '../../../theme';
@@ -79,12 +73,8 @@ export function AuthCredentialsForm({
   }
 
   return (
-    <Screen>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={styles.avoider}
-      >
-        <Text
+    <Screen scroll>
+      <Text
           style={{
             color: theme.colors.text,
             fontSize: theme.typography.h2.fontSize,
@@ -157,13 +147,6 @@ export function AuthCredentialsForm({
             disabled={isSubmitting}
           />
         </View>
-      </KeyboardAvoidingView>
     </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  avoider: {
-    flex: 1,
-  },
-});

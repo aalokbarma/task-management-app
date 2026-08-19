@@ -124,6 +124,7 @@ export const Input = React.forwardRef<TextInputRef, InputProps>(
 const styles = StyleSheet.create({
   input: {
     borderWidth: StyleSheet.hairlineWidth,
+    minHeight: 44,
   },
   multiline: {
     minHeight: 96,
