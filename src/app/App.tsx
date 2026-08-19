@@ -12,6 +12,10 @@ import {
   startConnectivityListener,
   stopConnectivityListener,
 } from '../services/connectivity';
+import {
+  startSyncService,
+  stopSyncService,
+} from '../services/sync';
 import { ThemeProvider, useTheme } from '../theme';
 import { store } from './store';
 
@@ -35,10 +39,12 @@ function AppContent(): React.JSX.Element {
   useEffect(() => {
     startConnectivityListener(store.dispatch);
     startAuthSession(store.dispatch);
+    startSyncService();
 
     return () => {
       stopConnectivityListener();
       stopAuthSession();
+      stopSyncService();
     };
   }, []);
 

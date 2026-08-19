@@ -170,6 +170,24 @@ export function getTask(taskId: string): Result<Task> {
   }
 }
 
+export function getTaskForSync(taskId: string): Result<Task> {
+  const userIdResult = requireUserId();
+  if (!userIdResult.success) {
+    return userIdResult;
+  }
+
+  try {
+    const object = findOwnedTask(getRealm(), userIdResult.data, taskId);
+    if (!object) {
+      return notFoundError();
+    }
+
+    return { success: true, data: mapTask(object) };
+  } catch (error) {
+    return toWriteError(error);
+  }
+}
+
 export function createTask(input: CreateTaskInput): Result<Task> {
   const userIdResult = requireUserId();
   if (!userIdResult.success) {

@@ -11,6 +11,7 @@ export {
   createTask,
   deleteTask,
   getTask,
+  getTaskForSync,
   listPendingSyncTasks,
   listTasks,
   markTaskFailed,

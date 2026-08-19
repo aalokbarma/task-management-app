@@ -5,6 +5,7 @@ import {
   setTaskCompleted,
   updateTask,
 } from '../../database/taskRepository';
+import { requestSync } from '../../services/sync';
 import type { AppError, CreateTaskInput, Task, UpdateTaskInput } from '../../types';
 import {
   taskErrorSet,
@@ -26,6 +27,7 @@ export const createTaskRequested = createAsyncThunk<
     return rejectWithValue(result.error);
   }
 
+  requestSync();
   return result.data;
 });
 
@@ -45,6 +47,7 @@ export const updateTaskRequested = createAsyncThunk<
       return rejectWithValue(result.error);
     }
 
+    requestSync();
     return result.data;
   },
 );
@@ -61,6 +64,7 @@ export const setTaskCompletedRequested = createAsyncThunk<
       return rejectWithValue(result.error);
     }
 
+    requestSync();
     return result.data;
   },
 );
@@ -78,4 +82,6 @@ export const deleteTaskRequested = createAsyncThunk<
     dispatch(taskErrorSet(result.error));
     return rejectWithValue(result.error);
   }
+
+  requestSync();
 });
