@@ -1,4 +1,4 @@
-import type Realm from 'realm';
+import Realm from 'realm';
 import {
   validateCreateTaskInput,
   validateUpdateTaskInput,
@@ -97,6 +97,16 @@ function nextMutationOperation(object: TaskObject): SyncOperation {
   return 'update';
 }
 
+function queryVisibleTasks(
+  realm: Realm,
+  userId: string,
+): Realm.Results<TaskObject> {
+  return realm
+    .objects(TaskObject)
+    .filtered('userId == $0 AND isDeleted == false', userId)
+    .sorted('createdAt', true);
+}
+
 export function listTasks(): Result<Task[]> {
   const userIdResult = requireUserId();
   if (!userIdResult.success) {
@@ -104,17 +114,41 @@ export function listTasks(): Result<Task[]> {
   }
 
   try {
-    const results = getRealm()
-      .objects(TaskObject)
-      .filtered(
-        'userId == $0 AND isDeleted == false',
-        userIdResult.data,
-      )
-      .sorted('createdAt', true);
-
+    const results = queryVisibleTasks(getRealm(), userIdResult.data);
     return { success: true, data: Array.from(results, mapTask) };
   } catch (error) {
     return toWriteError(error);
+  }
+}
+
+export function subscribeToTasks(
+  listener: (result: Result<Task[]>) => void,
+): () => void {
+  const userIdResult = requireUserId();
+  if (!userIdResult.success) {
+    listener(userIdResult);
+    return () => {};
+  }
+
+  try {
+    const results = queryVisibleTasks(getRealm(), userIdResult.data);
+
+    const emit = (): void => {
+      listener({ success: true, data: Array.from(results, mapTask) });
+    };
+
+    results.addListener(emit);
+    emit();
+    return () => {
+      try {
+        results.removeAllListeners();
+      } catch (error) {
+        logger.error(error, 'task.subscribe.unsubscribe');
+      }
+    };
+  } catch (error) {
+    listener(toWriteError(error));
+    return () => {};
   }
 }
 

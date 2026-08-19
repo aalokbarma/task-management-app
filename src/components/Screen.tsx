@@ -6,6 +6,7 @@ import { useTheme } from '../theme';
 interface ScreenProps {
   children: React.ReactNode;
   scroll?: boolean;
+  padded?: boolean;
   style?: StyleProp<ViewStyle>;
   edges?: Edge[];
 }
@@ -13,11 +14,12 @@ interface ScreenProps {
 export function Screen({
   children,
   scroll = false,
+  padded = true,
   style,
   edges = ['bottom', 'left', 'right'],
 }: ScreenProps): React.JSX.Element {
   const theme = useTheme();
-  const padding = { padding: theme.spacing.md };
+  const padding = padded ? { padding: theme.spacing.md } : undefined;
 
   return (
     <SafeAreaView

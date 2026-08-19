@@ -16,5 +16,6 @@ export {
   markTaskFailed,
   markTaskSynced,
   setTaskCompleted,
+  subscribeToTasks,
   updateTask,
 } from './taskRepository';

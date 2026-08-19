@@ -29,8 +29,8 @@ async function applyAuthState(
   user: User | null,
 ): Promise<void> {
   if (!user) {
-    closeRealm();
     dispatch(authSignedOut());
+    closeRealm();
     return;
   }
 
