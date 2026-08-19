@@ -398,3 +398,108 @@ export function markTaskFailed(taskId: string): Result<void> {
     return toWriteError(error);
   }
 }
+
+export function listAllTasksForSync(): Result<Task[]> {
+  const userIdResult = requireUserId();
+  if (!userIdResult.success) {
+    return userIdResult;
+  }
+
+  try {
+    const results = getRealm()
+      .objects(TaskObject)
+      .filtered('userId == $0', userIdResult.data);
+
+    return { success: true, data: Array.from(results, mapTask) };
+  } catch (error) {
+    return toWriteError(error);
+  }
+}
+
+function writeRemoteFields(object: TaskObject, remote: Task): void {
+  object.title = remote.title;
+  object.description = remote.description ?? null;
+  object.dueAt = remote.dueAt ?? null;
+  object.completed = remote.completed;
+  object.isDeleted = false;
+  object.createdAt = remote.createdAt;
+  object.updatedAt = remote.updatedAt;
+  object.syncStatus = 'synced';
+  object.operation = 'update';
+  object.version = remote.version;
+}
+
+export function applyRemoteSnapshot(remote: Task): Result<void> {
+  const userIdResult = requireUserId();
+  if (!userIdResult.success) {
+    return userIdResult;
+  }
+
+  if (remote.userId !== userIdResult.data) {
+    return {
+      success: false,
+      error: createAppError(
+        'task/write-failed',
+        TASK_ERROR_MESSAGES['task/write-failed'],
+      ),
+    };
+  }
+
+  try {
+    const realm = getRealm();
+    const existing = findOwnedTask(realm, userIdResult.data, remote.id);
+
+    realm.write(() => {
+      if (existing) {
+        writeRemoteFields(existing, remote);
+        return;
+      }
+
+      realm.create(TaskObject, {
+        id: remote.id,
+        userId: remote.userId,
+        title: remote.title,
+        description: remote.description ?? null,
+        dueAt: remote.dueAt ?? null,
+        completed: remote.completed,
+        isDeleted: false,
+        createdAt: remote.createdAt,
+        updatedAt: remote.updatedAt,
+        syncStatus: 'synced',
+        operation: 'update',
+        version: remote.version,
+      });
+    });
+
+    return { success: true, data: undefined };
+  } catch (error) {
+    return toWriteError(error);
+  }
+}
+
+export function removeLocalIfSynced(taskId: string): Result<void> {
+  const userIdResult = requireUserId();
+  if (!userIdResult.success) {
+    return userIdResult;
+  }
+
+  try {
+    const realm = getRealm();
+    const object = findOwnedTask(realm, userIdResult.data, taskId);
+    if (!object) {
+      return { success: true, data: undefined };
+    }
+
+    if (object.syncStatus !== 'synced') {
+      return { success: true, data: undefined };
+    }
+
+    realm.write(() => {
+      realm.delete(object);
+    });
+
+    return { success: true, data: undefined };
+  } catch (error) {
+    return toWriteError(error);
+  }
+}

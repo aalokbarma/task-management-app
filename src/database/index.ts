@@ -8,14 +8,17 @@ export {
 } from './realm';
 export { TaskObject } from './schemas/TaskObject';
 export {
+  applyRemoteSnapshot,
   createTask,
   deleteTask,
   getTask,
   getTaskForSync,
+  listAllTasksForSync,
   listPendingSyncTasks,
   listTasks,
   markTaskFailed,
   markTaskSynced,
+  removeLocalIfSynced,
   setTaskCompleted,
   subscribeToTasks,
   updateTask,

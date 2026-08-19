@@ -1,13 +1,24 @@
 import { AppState, type AppStateStatus } from 'react-native';
 import { store } from '../../app/store';
 import {
+  applyRemoteSnapshot,
   getTaskForSync,
+  listAllTasksForSync,
   listPendingSyncTasks,
   markTaskFailed,
   markTaskSynced,
+  removeLocalIfSynced,
 } from '../../database/taskRepository';
+import { getOpenedRealmUserId } from '../../database/realm';
+import type { Result, Task } from '../../types';
 import { logger } from '../../utils/logger';
-import { deleteRemoteTask, upsertRemoteTask } from '../tasks';
+import {
+  deleteRemoteTask,
+  getRemoteTask,
+  listRemoteTasks,
+  upsertRemoteTask,
+} from '../tasks';
+import { isNewerTask, isUnsynced } from './compareTasks';
 
 let started = false;
 let unsubscribeStore: (() => void) | null = null;
@@ -24,53 +35,153 @@ function canSync(): boolean {
   );
 }
 
-async function syncTask(taskId: string): Promise<void> {
+function logResult<T>(result: Result<T>, context: string): boolean {
+  if (result.success) {
+    return true;
+  }
+
+  logger.error(result.error, context);
+  return false;
+}
+
+async function pullAndMergeRemoteTasks(): Promise<void> {
+  const userId = getOpenedRealmUserId();
+  if (!userId) {
+    return;
+  }
+
+  const remoteResult = await listRemoteTasks(userId);
+  if (!remoteResult.success) {
+    logger.error(remoteResult.error, 'sync.pull');
+    return;
+  }
+
+  const localResult = listAllTasksForSync();
+  if (!localResult.success) {
+    logger.error(localResult.error, 'sync.listLocal');
+    return;
+  }
+
+  const localById = new Map(
+    localResult.data.map(task => [task.id, task]),
+  );
+  const remoteIds = new Set(remoteResult.data.map(task => task.id));
+
+  for (const remoteTask of remoteResult.data) {
+    const localTask = localById.get(remoteTask.id);
+    if (!localTask) {
+      logResult(applyRemoteSnapshot(remoteTask), 'sync.applyRemote');
+      continue;
+    }
+
+    if (isUnsynced(localTask)) {
+      continue;
+    }
+
+    if (isNewerTask(remoteTask, localTask)) {
+      logResult(applyRemoteSnapshot(remoteTask), 'sync.applyNewerRemote');
+    }
+  }
+
+  for (const localTask of localResult.data) {
+    if (remoteIds.has(localTask.id) || isUnsynced(localTask)) {
+      continue;
+    }
+
+    logResult(removeLocalIfSynced(localTask.id), 'sync.removeRemoteDeleted');
+  }
+}
+
+async function pushTask(task: Task): Promise<void> {
+  if (task.operation === 'delete') {
+    const remoteResult = await deleteRemoteTask(task.userId, task.id);
+    const latest = getTaskForSync(task.id);
+    if (!latest.success) {
+      logger.error(latest.error, 'sync.reRead');
+      return;
+    }
+
+    if (
+      !isUnsynced(latest.data) ||
+      latest.data.version !== task.version
+    ) {
+      return;
+    }
+
+    if (remoteResult.success) {
+      logResult(markTaskSynced(task.id), 'sync.markSynced');
+      return;
+    }
+
+    logger.error(remoteResult.error, 'sync.pushDelete');
+    logResult(markTaskFailed(task.id), 'sync.markFailed');
+    return;
+  }
+
+  const remoteLookup = await getRemoteTask(task.userId, task.id);
+  if (!remoteLookup.success) {
+    logger.error(remoteLookup.error, 'sync.getRemote');
+    const latest = getTaskForSync(task.id);
+    if (
+      latest.success &&
+      isUnsynced(latest.data) &&
+      latest.data.version === task.version
+    ) {
+      logResult(markTaskFailed(task.id), 'sync.markFailed');
+    }
+    return;
+  }
+
+  if (remoteLookup.data && isNewerTask(remoteLookup.data, task)) {
+    const latest = getTaskForSync(task.id);
+    if (
+      latest.success &&
+      isUnsynced(latest.data) &&
+      latest.data.version === task.version
+    ) {
+      logResult(
+        applyRemoteSnapshot(remoteLookup.data),
+        'sync.lastWriteWinsRemote',
+      );
+    }
+    return;
+  }
+
+  const remoteResult = await upsertRemoteTask(task);
+  const latest = getTaskForSync(task.id);
+  if (!latest.success) {
+    logger.error(latest.error, 'sync.reRead');
+    return;
+  }
+
+  if (!isUnsynced(latest.data) || latest.data.version !== task.version) {
+    return;
+  }
+
+  if (remoteResult.success) {
+    logResult(markTaskSynced(task.id), 'sync.markSynced');
+    return;
+  }
+
+  logger.error(remoteResult.error, 'sync.push');
+  logResult(markTaskFailed(task.id), 'sync.markFailed');
+}
+
+async function syncOutgoingTask(taskId: string): Promise<void> {
   const current = getTaskForSync(taskId);
   if (!current.success) {
     logger.error(current.error, 'sync.read');
     return;
   }
 
-  const task = current.data;
-  if (task.syncStatus !== 'pending') {
+  if (!isUnsynced(current.data)) {
     return;
   }
 
-  const versionAtStart = task.version;
-  const remoteResult =
-    task.operation === 'delete'
-      ? await deleteRemoteTask(task.userId, task.id)
-      : await upsertRemoteTask(task);
-
-  const latest = getTaskForSync(taskId);
-  if (!latest.success) {
-    logger.error(latest.error, 'sync.reRead');
-    return;
-  }
-
-  if (
-    latest.data.syncStatus !== 'pending' ||
-    latest.data.version !== versionAtStart
-  ) {
-    return;
-  }
-
-  if (remoteResult.success) {
-    const marked = markTaskSynced(taskId);
-    if (!marked.success) {
-      logger.error(marked.error, 'sync.markSynced');
-    }
-    return;
-  }
-
-  logger.error(remoteResult.error, 'sync.push');
-  const markedFailed = markTaskFailed(taskId);
-  if (!markedFailed.success) {
-    logger.error(markedFailed.error, 'sync.markFailed');
-  }
+  await pushTask(current.data);
 }
 
-async function processPendingTasks(): Promise<void> {
+async function processOutgoingTasks(): Promise<void> {
   const pending = listPendingSyncTasks();
   if (!pending.success) {
     logger.error(pending.error, 'sync.listPending');
@@ -80,13 +191,18 @@ async function processPendingTasks(): Promise<void> {
   const seen = new Set<string>();
 
   for (const task of pending.data) {
-    if (task.syncStatus !== 'pending' || seen.has(task.id)) {
+    if (!isUnsynced(task) || seen.has(task.id)) {
       continue;
     }
 
     seen.add(task.id);
-    await syncTask(task.id);
+    await syncOutgoingTask(task.id);
   }
+}
+
+async function processSync(): Promise<void> {
+  await pullAndMergeRemoteTasks();
+  await processOutgoingTasks();
 }
 
 async function runSync(): Promise<void> {
@@ -99,7 +215,7 @@ async function runSync(): Promise<void> {
     return;
   }
 
-  inFlight = processPendingTasks();
+  inFlight = processSync();
   try {
     await inFlight;
   } catch (error) {
