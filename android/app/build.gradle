@@ -3,6 +3,20 @@ apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 apply from: project(':react-native-config').projectDir.getPath() + "/dotenv.gradle"
 
+def rnProjectRoot = rootProject.projectDir.parentFile
+def firebaseSyncOutput = new ByteArrayOutputStream()
+def firebaseSyncResult = exec {
+    workingDir rnProjectRoot
+    commandLine "node", "scripts/sync-firebase-native-config.js"
+    environment "ENVFILE", System.getenv("ENVFILE") ?: ".env.development"
+    standardOutput firebaseSyncOutput
+    errorOutput firebaseSyncOutput
+    ignoreExitValue true
+}
+if (firebaseSyncResult.exitValue != 0) {
+    throw new GradleException("Failed to sync Firebase native config:\n${firebaseSyncOutput}")
+}
+
 /**
  * This is the configuration block to customize your React Native Android app.
  * By default you don't need to apply any configuration, just uncomment the lines you need.
@@ -118,3 +132,5 @@ dependencies {
         implementation jscFlavor
     }
 }
+
+apply plugin: "com.google.gms.google-services"

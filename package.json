@@ -16,9 +16,12 @@
     "start:dev": "ENVFILE=.env.development react-native start",
     "start:staging": "ENVFILE=.env.staging react-native start",
     "start:production": "ENVFILE=.env.production react-native start",
+    "firebase:sync": "node scripts/sync-firebase-native-config.js",
     "test": "jest"
   },
   "dependencies": {
+    "@react-native-firebase/app": "^26.2.0",
+    "@react-native-firebase/auth": "^26.2.0",
     "@react-native/new-app-screen": "0.87.0",
     "@react-navigation/native": "^7.3.16",
     "@react-navigation/native-stack": "^7.18.8",
