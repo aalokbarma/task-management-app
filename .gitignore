@@ -66,6 +66,19 @@ yarn-error.log
 # testing
 /coverage
 
+# Environment configuration (see .env.*.example for the expected shape)
+.env
+.env.local
+.env.development
+.env.staging
+.env.production
+
+# Firebase native credentials (keep *.example files under config/firebase/)
+android/app/google-services.json
+ios/taskapp/GoogleService-Info.plist
+config/firebase/**/google-services.json
+config/firebase/**/GoogleService-Info.plist
+
 # Yarn
 .yarn/*
 !.yarn/patches

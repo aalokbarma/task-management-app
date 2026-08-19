@@ -1,3 +1,4 @@
+export { showInAppBanner } from './inAppBanner';
 export {
   cancelTaskReminder,
   displayIncomingPush,

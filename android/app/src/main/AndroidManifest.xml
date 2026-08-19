@@ -18,7 +18,7 @@
     android:supportsRtl="true">
     <meta-data
       android:name="com.google.firebase.messaging.default_notification_channel_id"
-      android:value="task-reminders"
+      android:value="task-alerts"
       tools:replace="android:value" />
     <activity
       android:name=".MainActivity"

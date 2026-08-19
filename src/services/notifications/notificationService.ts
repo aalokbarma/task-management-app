@@ -13,8 +13,9 @@ import { listTasks } from '../../database/taskRepository';
 import { queueTaskNotificationNavigation } from '../../navigation/navigationRef';
 import type { Task } from '../../types';
 import { logger } from '../../utils/logger';
+import { showInAppBanner } from './inAppBanner';
 
-const CHANNEL_ID = 'task-reminders';
+const CHANNEL_ID = 'task-alerts';
 const NOTIFICATION_ID_PREFIX = 'task-';
 
 let started = false;
@@ -59,7 +60,30 @@ function reminderTimestamp(task: Task): number | null {
   return due;
 }
 
+function showBannerFromNotification(notification?: Notification): void {
+  const body = notification?.body;
+  if (!body) {
+    return;
+  }
+
+  const taskId = taskIdFromNotification(notification);
+  showInAppBanner({
+    title: notification?.title ?? 'Task App',
+    body,
+    taskId: taskId ?? undefined,
+  });
+}
+
 function handleNotificationEvent(event: Event): void {
+  if (event.type === EventType.DELIVERED) {
+    // App is open: drop an in-app banner from the top instead of only
+    // sitting in the system tray.
+    if (AppState.currentState === 'active') {
+      showBannerFromNotification(event.detail.notification);
+    }
+    return;
+  }
+
   if (event.type !== EventType.PRESS) {
     return;
   }
@@ -76,7 +100,7 @@ async function ensureChannel(): Promise<void> {
       .createChannel({
         id: CHANNEL_ID,
         name: 'Task reminders',
-        importance: AndroidImportance.DEFAULT,
+        importance: AndroidImportance.HIGH,
       })
       .then(() => undefined)
       .catch(error => {
@@ -130,6 +154,7 @@ async function scheduleReminder(task: Task, timestamp: number): Promise<void> {
       data: { taskId: task.id },
       android: {
         channelId: CHANNEL_ID,
+        importance: AndroidImportance.HIGH,
         pressAction: { id: 'default' },
       },
     },
@@ -195,6 +220,15 @@ async function displayIncomingPushAsync(options: {
 
   await ensureChannel();
 
+  if (AppState.currentState === 'active') {
+    showInAppBanner({
+      title: options.title,
+      body: options.body,
+      taskId: options.taskId,
+    });
+    return;
+  }
+
   const data = options.taskId ? { taskId: options.taskId } : undefined;
 
   await notifee.displayNotification({
@@ -206,6 +240,7 @@ async function displayIncomingPushAsync(options: {
     data,
     android: {
       channelId: CHANNEL_ID,
+      importance: AndroidImportance.HIGH,
       pressAction: { id: 'default' },
     },
   });

@@ -7,6 +7,7 @@ import {
 } from '../../database/taskRepository';
 import {
   cancelTaskReminder,
+  showInAppBanner,
   syncReminderForTask,
 } from '../../services/notifications';
 import { requestSync } from '../../services/sync';
@@ -77,6 +78,11 @@ export const setTaskCompletedRequested = createAsyncThunk<
 
     requestSync();
     syncReminderForTask(result.data);
+    showInAppBanner({
+      title: result.data.title,
+      body: completed ? 'Marked as complete' : 'Marked as incomplete',
+      taskId: result.data.id,
+    });
     return result.data;
   },
 );

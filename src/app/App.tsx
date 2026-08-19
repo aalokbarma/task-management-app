@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { StatusBar } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider } from 'react-redux';
+import { InAppBanner } from '../components';
 import { getFirebaseApp } from '../config/firebase';
 import {
   startAuthSession,
@@ -71,6 +72,7 @@ function AppContent(): React.JSX.Element {
         barStyle={theme.scheme === 'dark' ? 'light-content' : 'dark-content'}
       />
       <RootNavigator />
+      <InAppBanner />
     </>
   );
 }
