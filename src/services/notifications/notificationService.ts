@@ -93,7 +93,7 @@ async function hasNotificationPermission(): Promise<boolean> {
   );
 }
 
-async function requestNotificationPermission(): Promise<boolean> {
+export async function ensureNotificationPermission(): Promise<boolean> {
   if (await hasNotificationPermission()) {
     return true;
   }
@@ -111,7 +111,7 @@ async function cancelTaskReminderInternal(taskId: string): Promise<void> {
 }
 
 async function scheduleReminder(task: Task, timestamp: number): Promise<void> {
-  const allowed = await requestNotificationPermission();
+  const allowed = await ensureNotificationPermission();
   if (!allowed) {
     return;
   }
@@ -168,6 +168,44 @@ async function syncTaskRemindersAsync(): Promise<void> {
 
 async function cancelAllReminders(): Promise<void> {
   await notifee.cancelAllNotifications();
+}
+
+export function displayIncomingPush(options: {
+  title: string;
+  body: string;
+  taskId?: string;
+}): void {
+  displayIncomingPushAsync(options).catch(error => {
+    logger.error(error, 'notifications.push');
+  });
+}
+
+async function displayIncomingPushAsync(options: {
+  title: string;
+  body: string;
+  taskId?: string;
+}): Promise<void> {
+  const allowed = await ensureNotificationPermission();
+  if (!allowed) {
+    return;
+  }
+
+  await ensureChannel();
+
+  const data = options.taskId ? { taskId: options.taskId } : undefined;
+
+  await notifee.displayNotification({
+    id: options.taskId
+      ? `fcm-${options.taskId}`
+      : `fcm-${Date.now().toString()}`,
+    title: options.title,
+    body: options.body,
+    data,
+    android: {
+      channelId: CHANNEL_ID,
+      pressAction: { id: 'default' },
+    },
+  });
 }
 
 export function syncReminderForTask(task: Task): void {

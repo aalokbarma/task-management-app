@@ -1,5 +1,7 @@
 export {
   cancelTaskReminder,
+  displayIncomingPush,
+  ensureNotificationPermission,
   registerNotificationBackgroundHandler,
   startNotificationService,
   stopNotificationService,
