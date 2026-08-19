@@ -8,9 +8,12 @@ import type {
   UpdateTaskInput,
 } from '../../../types';
 import { TaskForm } from '../components/TaskForm';
+import { confirmDeleteTask } from '../confirmDeleteTask';
 import { useTask } from '../hooks/useTask';
 import {
   createTaskRequested,
+  deleteTaskRequested,
+  setTaskCompletedRequested,
   updateTaskRequested,
 } from '../taskThunks';
 import {
@@ -55,6 +58,42 @@ export default function TaskDetailScreen({
     }
   }
 
+  async function handleToggleComplete(): Promise<void> {
+    if (!taskId || !task) {
+      return;
+    }
+
+    const result = await dispatch(
+      setTaskCompletedRequested({
+        taskId,
+        completed: !task.completed,
+      }),
+    );
+
+    if (setTaskCompletedRequested.fulfilled.match(result)) {
+      reload();
+      return;
+    }
+
+    if (result.payload) {
+      dispatch(taskErrorSet(result.payload));
+    }
+  }
+
+  function handleDeletePress(): void {
+    if (!taskId) {
+      return;
+    }
+
+    confirmDeleteTask(() => {
+      dispatch(deleteTaskRequested(taskId)).then(result => {
+        if (deleteTaskRequested.fulfilled.match(result)) {
+          navigation.goBack();
+        }
+      });
+    });
+  }
+
   if (taskId && isLoading) {
     return (
       <Screen>
@@ -86,6 +125,9 @@ export default function TaskDetailScreen({
       onSubmitCreate={handleCreate}
       onSubmitUpdate={handleUpdate}
       onDismissFormError={() => dispatch(taskErrorSet(null))}
+      completed={task?.completed}
+      onToggleComplete={taskId ? handleToggleComplete : undefined}
+      onDelete={taskId ? handleDeletePress : undefined}
     />
   );
 }

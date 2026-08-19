@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import {
+  Alert,
   FlatList,
   ListRenderItem,
   Pressable,
@@ -13,7 +14,12 @@ import { EmptyState, ErrorView, Loader, Screen } from '../../../components';
 import { useTheme } from '../../../theme';
 import type { AppStackParamList, Task } from '../../../types';
 import { TaskItem } from '../components/TaskItem';
+import { confirmDeleteTask } from '../confirmDeleteTask';
 import { useTaskList } from '../hooks/useTaskList';
+import {
+  deleteTaskRequested,
+  setTaskCompletedRequested,
+} from '../taskThunks';
 import {
   selectTaskFilter,
   taskFilterChanged,
@@ -59,9 +65,45 @@ export default function TaskListScreen({
     [navigation],
   );
 
+  const onToggleComplete = useCallback(
+    async (taskId: string, completed: boolean) => {
+      const result = await dispatch(
+        setTaskCompletedRequested({ taskId, completed }),
+      );
+      if (
+        setTaskCompletedRequested.rejected.match(result) &&
+        result.payload
+      ) {
+        Alert.alert('Could not update task', result.payload.message);
+      }
+    },
+    [dispatch],
+  );
+
+  const onDelete = useCallback(
+    (taskId: string) => {
+      confirmDeleteTask(() => {
+        dispatch(deleteTaskRequested(taskId)).then(result => {
+          if (deleteTaskRequested.rejected.match(result) && result.payload) {
+            Alert.alert('Could not delete task', result.payload.message);
+          }
+          return undefined;
+        });
+      });
+    },
+    [dispatch],
+  );
+
   const renderItem: ListRenderItem<Task> = useCallback(
-    ({ item }) => <TaskItem task={item} onPress={onTaskPress} />,
-    [onTaskPress],
+    ({ item }) => (
+      <TaskItem
+        task={item}
+        onPress={onTaskPress}
+        onToggleComplete={onToggleComplete}
+        onDelete={onDelete}
+      />
+    ),
+    [onDelete, onTaskPress, onToggleComplete],
   );
 
   function emptyCopy(): { title: string; description: string } {

@@ -29,6 +29,9 @@ interface TaskFormProps {
   onSubmitCreate: (input: CreateTaskInput) => void | Promise<void>;
   onSubmitUpdate: (input: UpdateTaskInput) => void | Promise<void>;
   onDismissFormError: () => void;
+  completed?: boolean;
+  onToggleComplete?: () => void | Promise<void>;
+  onDelete?: () => void;
 }
 
 function parseInitialDueAt(value: string | undefined): Date | null {
@@ -54,6 +57,9 @@ export function TaskForm({
   onSubmitCreate,
   onSubmitUpdate,
   onDismissFormError,
+  completed = false,
+  onToggleComplete,
+  onDelete,
 }: TaskFormProps): React.JSX.Element {
   const theme = useTheme();
   const descriptionRef = useRef<React.ComponentRef<typeof Input>>(null);
@@ -175,6 +181,28 @@ export function TaskForm({
             disabled={isSubmitting}
           />
         </View>
+        {mode === 'edit' && onToggleComplete ? (
+          <View style={{ marginTop: theme.spacing.sm }}>
+            <Button
+              label={completed ? 'Mark as incomplete' : 'Mark as complete'}
+              variant="secondary"
+              disabled={isSubmitting}
+              onPress={() => {
+                onToggleComplete();
+              }}
+            />
+          </View>
+        ) : null}
+        {mode === 'edit' && onDelete ? (
+          <View style={{ marginTop: theme.spacing.sm }}>
+            <Button
+              label="Delete task"
+              variant="danger"
+              disabled={isSubmitting}
+              onPress={onDelete}
+            />
+          </View>
+        ) : null}
       </KeyboardAvoidingView>
     </Screen>
   );

@@ -1,5 +1,10 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import { createTask, updateTask } from '../../database/taskRepository';
+import {
+  createTask,
+  deleteTask,
+  setTaskCompleted,
+  updateTask,
+} from '../../database/taskRepository';
 import type { AppError, CreateTaskInput, Task, UpdateTaskInput } from '../../types';
 import {
   taskErrorSet,
@@ -43,3 +48,34 @@ export const updateTaskRequested = createAsyncThunk<
     return result.data;
   },
 );
+
+export const setTaskCompletedRequested = createAsyncThunk<
+  Task,
+  { taskId: string; completed: boolean },
+  { rejectValue: AppError }
+>(
+  'tasks/setCompletedRequested',
+  async ({ taskId, completed }, { rejectWithValue }) => {
+    const result = setTaskCompleted(taskId, completed);
+    if (!result.success) {
+      return rejectWithValue(result.error);
+    }
+
+    return result.data;
+  },
+);
+
+export const deleteTaskRequested = createAsyncThunk<
+  void,
+  string,
+  { rejectValue: AppError }
+>('tasks/deleteRequested', async (taskId, { dispatch, rejectWithValue }) => {
+  dispatch(taskSubmissionStarted());
+  const result = deleteTask(taskId);
+  dispatch(taskSubmissionFinished());
+
+  if (!result.success) {
+    dispatch(taskErrorSet(result.error));
+    return rejectWithValue(result.error);
+  }
+});

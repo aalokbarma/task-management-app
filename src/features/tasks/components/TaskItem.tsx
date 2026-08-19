@@ -7,11 +7,15 @@ import { formatDueAt } from '../../../utils/formatDate';
 interface TaskItemProps {
   task: Task;
   onPress: (taskId: string) => void;
+  onToggleComplete: (taskId: string, completed: boolean) => void;
+  onDelete: (taskId: string) => void;
 }
 
 function TaskItemComponent({
   task,
   onPress,
+  onToggleComplete,
+  onDelete,
 }: TaskItemProps): React.JSX.Element {
   const theme = useTheme();
   const dueLabel = task.dueAt ? formatDueAt(task.dueAt) : '';
@@ -19,8 +23,9 @@ function TaskItemComponent({
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityState={{ checked: task.completed }}
+      accessibilityLabel={task.title}
       onPress={() => onPress(task.id)}
+      onLongPress={() => onDelete(task.id)}
       style={({ pressed }) => [
         styles.row,
         {
@@ -33,7 +38,14 @@ function TaskItemComponent({
         },
       ]}
     >
-      <View
+      <Pressable
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked: task.completed }}
+        accessibilityLabel={
+          task.completed ? 'Mark as incomplete' : 'Mark as complete'
+        }
+        hitSlop={8}
+        onPress={() => onToggleComplete(task.id, !task.completed)}
         style={[
           styles.checkbox,
           {
@@ -91,9 +103,9 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
   },
   checkbox: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     borderWidth: StyleSheet.hairlineWidth * 2,
   },
   checkboxEmpty: {
