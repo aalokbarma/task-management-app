@@ -1,16 +1,14 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { signIn, signOut, signUp } from '../../services/auth';
 import type { AppError, AuthCredentials, User } from '../../types';
-import { authFailed } from './authSlice';
 
 export const signInRequested = createAsyncThunk<
   User,
   AuthCredentials,
   { rejectValue: AppError }
->('auth/signInRequested', async (credentials, { dispatch, rejectWithValue }) => {
+>('auth/signInRequested', async (credentials, { rejectWithValue }) => {
   const result = await signIn(credentials);
   if (!result.success) {
-    dispatch(authFailed(result.error));
     return rejectWithValue(result.error);
   }
 
@@ -21,10 +19,9 @@ export const signUpRequested = createAsyncThunk<
   User,
   AuthCredentials,
   { rejectValue: AppError }
->('auth/signUpRequested', async (credentials, { dispatch, rejectWithValue }) => {
+>('auth/signUpRequested', async (credentials, { rejectWithValue }) => {
   const result = await signUp(credentials);
   if (!result.success) {
-    dispatch(authFailed(result.error));
     return rejectWithValue(result.error);
   }
 

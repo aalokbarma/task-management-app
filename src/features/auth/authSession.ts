@@ -5,7 +5,7 @@ import {
   isRealmOpen,
   openRealm,
 } from '../../database/realm';
-import { subscribeToAuthState } from '../../services/auth';
+import { subscribeToAuthState, getCurrentUser } from '../../services/auth';
 import { createAppError, type User } from '../../types';
 import { logger } from '../../utils/logger';
 import {
@@ -77,4 +77,9 @@ export function stopAuthSession(): void {
 
   unsubscribe();
   unsubscribe = null;
+}
+
+export function retryAuthSession(dispatch: AppDispatch): void {
+  dispatch(authLoading());
+  enqueue(() => applyAuthState(dispatch, getCurrentUser()));
 }
