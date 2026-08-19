@@ -16,6 +16,10 @@ import { retryAuthSession } from '../features/auth/authSession';
 import { useTheme } from '../theme';
 import { AppNavigator } from './AppNavigator';
 import { AuthNavigator } from './AuthNavigator';
+import {
+  consumePendingNotificationNavigation,
+  navigationRef,
+} from './navigationRef';
 
 export function RootNavigator(): React.JSX.Element {
   const authStatus = useAppSelector(selectAuthStatus);
@@ -26,6 +30,12 @@ export function RootNavigator(): React.JSX.Element {
   React.useEffect(() => {
     if (authStatus === 'error') {
       BootSplash.hide({ fade: true });
+    }
+  }, [authStatus]);
+
+  React.useEffect(() => {
+    if (authStatus === 'authenticated') {
+      consumePendingNotificationNavigation();
     }
   }, [authStatus]);
 
@@ -63,9 +73,11 @@ export function RootNavigator(): React.JSX.Element {
 
   return (
     <NavigationContainer
+      ref={navigationRef}
       theme={navigationTheme}
       onReady={() => {
         BootSplash.hide({ fade: true });
+        consumePendingNotificationNavigation();
       }}
     >
       {authStatus === 'authenticated' ? <AppNavigator /> : <AuthNavigator />}

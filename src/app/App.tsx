@@ -13,6 +13,10 @@ import {
   stopConnectivityListener,
 } from '../services/connectivity';
 import {
+  startNotificationService,
+  stopNotificationService,
+} from '../services/notifications';
+import {
   startSyncService,
   stopSyncService,
 } from '../services/sync';
@@ -40,11 +44,13 @@ function AppContent(): React.JSX.Element {
     startConnectivityListener(store.dispatch);
     startAuthSession(store.dispatch);
     startSyncService();
+    startNotificationService();
 
     return () => {
       stopConnectivityListener();
       stopAuthSession();
       stopSyncService();
+      stopNotificationService();
     };
   }, []);
 

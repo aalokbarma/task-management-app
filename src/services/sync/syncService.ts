@@ -18,6 +18,7 @@ import {
   listRemoteTasks,
   upsertRemoteTask,
 } from '../tasks';
+import { syncTaskReminders } from '../notifications';
 import { isNewerTask, isUnsynced } from './compareTasks';
 
 let started = false;
@@ -203,6 +204,7 @@ async function processOutgoingTasks(): Promise<void> {
 async function processSync(): Promise<void> {
   await pullAndMergeRemoteTasks();
   await processOutgoingTasks();
+  syncTaskReminders();
 }
 
 async function runSync(): Promise<void> {

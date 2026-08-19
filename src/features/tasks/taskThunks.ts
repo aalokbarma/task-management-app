@@ -5,6 +5,10 @@ import {
   setTaskCompleted,
   updateTask,
 } from '../../database/taskRepository';
+import {
+  cancelTaskReminder,
+  syncReminderForTask,
+} from '../../services/notifications';
 import { requestSync } from '../../services/sync';
 import type { AppError, CreateTaskInput, Task, UpdateTaskInput } from '../../types';
 import {
@@ -28,6 +32,7 @@ export const createTaskRequested = createAsyncThunk<
   }
 
   requestSync();
+  syncReminderForTask(result.data);
   return result.data;
 });
 
@@ -48,6 +53,7 @@ export const updateTaskRequested = createAsyncThunk<
     }
 
     requestSync();
+    syncReminderForTask(result.data);
     return result.data;
   },
 );
@@ -65,6 +71,7 @@ export const setTaskCompletedRequested = createAsyncThunk<
     }
 
     requestSync();
+    syncReminderForTask(result.data);
     return result.data;
   },
 );
@@ -84,4 +91,5 @@ export const deleteTaskRequested = createAsyncThunk<
   }
 
   requestSync();
+  cancelTaskReminder(taskId);
 });
