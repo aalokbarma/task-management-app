@@ -27,6 +27,8 @@ interface InputProps {
   returnKeyType?: TextInputProps['returnKeyType'];
   onSubmitEditing?: TextInputProps['onSubmitEditing'];
   editable?: boolean;
+  multiline?: boolean;
+  numberOfLines?: number;
   style?: StyleProp<ViewStyle>;
   testID?: string;
 }
@@ -48,6 +50,8 @@ export const Input = React.forwardRef<TextInputRef, InputProps>(
     returnKeyType,
     onSubmitEditing,
     editable = true,
+    multiline = false,
+    numberOfLines,
     style,
     testID,
   },
@@ -84,9 +88,13 @@ export const Input = React.forwardRef<TextInputRef, InputProps>(
         returnKeyType={returnKeyType}
         onSubmitEditing={onSubmitEditing}
         editable={editable}
+        multiline={multiline}
+        numberOfLines={numberOfLines}
+        textAlignVertical={multiline ? 'top' : 'center'}
         testID={testID}
         style={[
           styles.input,
+          multiline ? styles.multiline : null,
           {
             borderColor,
             color: theme.colors.text,
@@ -116,5 +124,8 @@ export const Input = React.forwardRef<TextInputRef, InputProps>(
 const styles = StyleSheet.create({
   input: {
     borderWidth: StyleSheet.hairlineWidth,
+  },
+  multiline: {
+    minHeight: 96,
   },
 });

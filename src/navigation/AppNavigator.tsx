@@ -36,7 +36,9 @@ export function AppNavigator(): React.JSX.Element {
       <Stack.Screen
         name="TaskDetail"
         component={TaskDetailScreen}
-        options={{ title: 'Task' }}
+        options={({ route }) => ({
+          title: route.params?.taskId ? 'Edit task' : 'Add task',
+        })}
       />
       <Stack.Screen
         name="Settings"

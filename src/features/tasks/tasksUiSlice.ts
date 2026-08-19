@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import type { AppError } from '../../types';
 import type { RootState } from '../../app/store';
+import type { AppError } from '../../types';
 
 export type TaskFilter = 'all' | 'active' | 'completed';
 
