@@ -17,7 +17,7 @@ export function RootNavigator(): React.JSX.Element {
   const authStatus = useAppSelector(selectAuthStatus);
   const theme = useTheme();
 
-  if (authStatus === 'loading') {
+  if (authStatus === 'idle' || authStatus === 'loading') {
     return <Loader fullscreen />;
   }
 

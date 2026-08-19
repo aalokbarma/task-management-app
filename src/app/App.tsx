@@ -3,6 +3,10 @@ import { StatusBar } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider } from 'react-redux';
 import { getFirebaseApp } from '../config/firebase';
+import {
+  startAuthSession,
+  stopAuthSession,
+} from '../features/auth/authSession';
 import { RootNavigator } from '../navigation';
 import {
   startConnectivityListener,
@@ -30,7 +34,12 @@ function AppContent(): React.JSX.Element {
 
   useEffect(() => {
     startConnectivityListener(store.dispatch);
-    return stopConnectivityListener;
+    startAuthSession(store.dispatch);
+
+    return () => {
+      stopConnectivityListener();
+      stopAuthSession();
+    };
   }, []);
 
   return (
