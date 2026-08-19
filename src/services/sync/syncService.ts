@@ -45,6 +45,9 @@ function logResult<T>(result: Result<T>, context: string): boolean {
   return false;
 }
 
+// Downloads the user's tasks from Firestore and merges them into the local
+// Realm database. Local changes that haven't been pushed yet always win,
+// so we never overwrite work the user did while offline.
 async function pullAndMergeRemoteTasks(): Promise<void> {
   const userId = getOpenedRealmUserId();
   if (!userId) {
@@ -93,6 +96,9 @@ async function pullAndMergeRemoteTasks(): Promise<void> {
   }
 }
 
+// Sends one locally-changed task up to Firestore. Before writing, we
+// double-check the server copy so we don't blindly stomp on a newer
+// change made from another device (last-write-wins by version/updatedAt).
 async function pushTask(task: Task): Promise<void> {
   if (task.operation === 'delete') {
     const remoteResult = await deleteRemoteTask(task.userId, task.id);
@@ -207,6 +213,9 @@ async function processSync(): Promise<void> {
   syncTaskReminders();
 }
 
+// Runs a sync pass, making sure only one runs at a time. If a request
+// comes in while we're already syncing, we just remember to run again
+// right after instead of starting a second sync in parallel.
 async function runSync(): Promise<void> {
   if (!canSync()) {
     return;

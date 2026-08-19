@@ -16,6 +16,9 @@ import {
 } from './authSlice';
 
 let unsubscribe: (() => void) | null = null;
+// Firebase can fire auth state changes back-to-back (e.g. sign out then
+// sign in quickly). This queue makes sure we open/close the Realm database
+// for one user at a time, in order, instead of racing each other.
 let queue: Promise<void> = Promise.resolve();
 
 function enqueue(work: () => Promise<void>): void {
@@ -43,6 +46,9 @@ async function applyAuthState(
 
   try {
     await openRealm(user.id);
+    // Opening the database is async, so by the time it finishes the user
+    // may have already signed out (or switched accounts). Check again
+    // before updating state so we don't show a screen for the wrong user.
     const currentUser = getCurrentUser();
     if (currentUser?.id !== user.id) {
       if (!currentUser) {

@@ -7,6 +7,8 @@ export const REALM_SCHEMA_VERSION = 1;
 let realm: Realm | null = null;
 let openedForUserId: string | null = null;
 
+// Each signed-in user gets their own local database file, so switching
+// accounts on the same device never mixes up tasks between users.
 function realmPathForUser(userId: string): string {
   const safeUserId = userId.replace(/[^a-zA-Z0-9_-]/g, '_');
   return `taskapp-${safeUserId}.realm`;

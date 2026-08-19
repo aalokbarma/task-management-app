@@ -46,6 +46,9 @@ function AppContent(): React.JSX.Element {
   const theme = useTheme();
 
   useEffect(() => {
+    // Kick off all the background services once, when the app mounts.
+    // Each one watches the Redux store on its own and reacts to auth /
+    // connectivity changes, so we don't need to coordinate them here.
     startThemePreference(store.dispatch);
     startConnectivityListener(store.dispatch);
     startAuthSession(store.dispatch);

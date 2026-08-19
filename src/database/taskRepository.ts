@@ -308,6 +308,10 @@ export function deleteTask(taskId: string): Result<void> {
     }
 
     realm.write(() => {
+      // If this task was created offline and never made it to Firestore,
+      // there's nothing remote to clean up - just remove it right away.
+      // Otherwise we soft-delete it (mark isDeleted + operation: 'delete')
+      // so the sync service knows to delete it on the server too.
       if (object.operation === 'create' && object.syncStatus !== 'synced') {
         realm.delete(object);
         return;
@@ -362,6 +366,8 @@ export function markTaskSynced(taskId: string): Result<void> {
     }
 
     realm.write(() => {
+      // A synced delete has finished its job (server copy is gone too),
+      // so we can drop the local row entirely instead of keeping it around.
       if (object.operation === 'delete') {
         realm.delete(object);
         return;

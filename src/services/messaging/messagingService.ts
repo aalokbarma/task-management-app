@@ -30,6 +30,9 @@ function getFirebaseMessaging() {
   return getMessaging(getFirebaseApp());
 }
 
+// Grabs this device's push token from Firebase and saves it on the user's
+// Firestore document, so a server-side function could later send them a
+// push notification. Skipped silently if the user never granted permission.
 async function persistCurrentToken(userId: string): Promise<void> {
   try {
     const allowed = await ensureNotificationPermission();
@@ -49,6 +52,8 @@ async function persistCurrentToken(userId: string): Promise<void> {
   }
 }
 
+// Wipes the push token when a user signs out, so a signed-out device
+// doesn't keep receiving notifications meant for that account.
 async function removeCurrentToken(userId: string): Promise<void> {
   const result = await clearFcmToken(userId);
   if (!result.success) {

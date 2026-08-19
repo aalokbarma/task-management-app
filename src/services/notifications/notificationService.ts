@@ -43,6 +43,9 @@ function taskIdFromNotification(notification?: Notification): string | null {
   return null;
 }
 
+// Works out when (if at all) a reminder should fire for this task.
+// Returns null for tasks that don't need a reminder: deleted, already
+// completed, missing a due date, or the due date has already passed.
 function reminderTimestamp(task: Task): number | null {
   if (task.isDeleted || task.completed || !task.dueAt) {
     return null;

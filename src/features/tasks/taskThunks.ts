@@ -17,6 +17,11 @@ import {
   taskSubmissionStarted,
 } from './tasksUiSlice';
 
+// These thunks always write to Realm first and return right away - that's
+// what makes create/edit/delete work instantly, even offline. requestSync()
+// is just a "hey, try to push this" signal; it runs in the background and
+// doesn't block the UI or fail the action if the network is down.
+
 export const createTaskRequested = createAsyncThunk<
   Task,
   CreateTaskInput,
