@@ -10,6 +10,8 @@ import {
 } from 'react-native';
 import { useTheme } from '../theme';
 
+type TextInputRef = React.ComponentRef<typeof TextInput>;
+
 interface InputProps {
   label?: string;
   value: string;
@@ -19,22 +21,38 @@ interface InputProps {
   secureTextEntry?: boolean;
   keyboardType?: TextInputProps['keyboardType'];
   autoCapitalize?: TextInputProps['autoCapitalize'];
+  autoCorrect?: boolean;
+  autoComplete?: TextInputProps['autoComplete'];
+  textContentType?: TextInputProps['textContentType'];
+  returnKeyType?: TextInputProps['returnKeyType'];
+  onSubmitEditing?: TextInputProps['onSubmitEditing'];
+  editable?: boolean;
   style?: StyleProp<ViewStyle>;
   testID?: string;
 }
 
-export function Input({
-  label,
-  value,
-  onChangeText,
-  placeholder,
-  error,
-  secureTextEntry,
-  keyboardType,
-  autoCapitalize = 'none',
-  style,
-  testID,
-}: InputProps): React.JSX.Element {
+export const Input = React.forwardRef<TextInputRef, InputProps>(
+  function InputField(
+  {
+    label,
+    value,
+    onChangeText,
+    placeholder,
+    error,
+    secureTextEntry,
+    keyboardType,
+    autoCapitalize = 'none',
+    autoCorrect,
+    autoComplete,
+    textContentType,
+    returnKeyType,
+    onSubmitEditing,
+    editable = true,
+    style,
+    testID,
+  },
+  ref,
+): React.JSX.Element {
   const theme = useTheme();
   const borderColor = error ? theme.colors.danger : theme.colors.border;
 
@@ -52,6 +70,7 @@ export function Input({
         </Text>
       ) : null}
       <TextInput
+        ref={ref}
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
@@ -59,6 +78,12 @@ export function Input({
         secureTextEntry={secureTextEntry}
         keyboardType={keyboardType}
         autoCapitalize={autoCapitalize}
+        autoCorrect={autoCorrect}
+        autoComplete={autoComplete}
+        textContentType={textContentType}
+        returnKeyType={returnKeyType}
+        onSubmitEditing={onSubmitEditing}
+        editable={editable}
         testID={testID}
         style={[
           styles.input,
@@ -86,7 +111,7 @@ export function Input({
       ) : null}
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   input: {

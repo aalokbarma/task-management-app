@@ -19,12 +19,14 @@ export interface AuthState {
   status: AuthStatus;
   user: User | null;
   error: AppError | null;
+  isSubmitting: boolean;
 }
 
 const initialState: AuthState = {
   status: 'idle',
   user: null,
   error: null,
+  isSubmitting: false,
 };
 
 function rejectedAuthError(payload: AppError | undefined): AppError {
@@ -46,34 +48,50 @@ const authSlice = createSlice({
       state.status = 'authenticated';
       state.user = action.payload;
       state.error = null;
+      state.isSubmitting = false;
     },
     authFailed(state, action: PayloadAction<AppError>) {
       state.status = 'error';
       state.user = null;
       state.error = action.payload;
+      state.isSubmitting = false;
     },
     authSignedOut(state) {
       state.status = 'unauthenticated';
       state.user = null;
+      state.error = null;
+      state.isSubmitting = false;
+    },
+    authErrorCleared(state) {
       state.error = null;
     },
   },
   extraReducers: builder => {
     builder.addCase(signInRequested.pending, state => {
       state.error = null;
+      state.isSubmitting = true;
+    });
+    builder.addCase(signInRequested.fulfilled, state => {
+      state.isSubmitting = false;
     });
     builder.addCase(signInRequested.rejected, (state, action) => {
       state.status = 'unauthenticated';
       state.user = null;
       state.error = rejectedAuthError(action.payload);
+      state.isSubmitting = false;
     });
     builder.addCase(signUpRequested.pending, state => {
       state.error = null;
+      state.isSubmitting = true;
+    });
+    builder.addCase(signUpRequested.fulfilled, state => {
+      state.isSubmitting = false;
     });
     builder.addCase(signUpRequested.rejected, (state, action) => {
       state.status = 'unauthenticated';
       state.user = null;
       state.error = rejectedAuthError(action.payload);
+      state.isSubmitting = false;
     });
     builder.addCase(signOutRequested.rejected, (state, action) => {
       state.error = rejectedAuthError(action.payload);
@@ -81,8 +99,13 @@ const authSlice = createSlice({
   },
 });
 
-export const { authLoading, authSucceeded, authFailed, authSignedOut } =
-  authSlice.actions;
+export const {
+  authLoading,
+  authSucceeded,
+  authFailed,
+  authSignedOut,
+  authErrorCleared,
+} = authSlice.actions;
 
 export const selectAuthStatus = (state: RootState): AuthStatus =>
   state.auth.status;
@@ -92,5 +115,7 @@ export const selectAuthError = (state: RootState): AppError | null =>
   state.auth.error;
 export const selectIsAuthenticated = (state: RootState): boolean =>
   state.auth.status === 'authenticated';
+export const selectIsAuthSubmitting = (state: RootState): boolean =>
+  state.auth.isSubmitting;
 
 export default authSlice.reducer;
