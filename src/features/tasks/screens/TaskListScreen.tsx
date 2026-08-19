@@ -4,6 +4,7 @@ import {
   FlatList,
   ListRenderItem,
   Pressable,
+  RefreshControl,
   StyleSheet,
   Text,
   View,
@@ -11,6 +12,7 @@ import {
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
 import { EmptyState, ErrorView, Loader, Screen } from '../../../components';
+import { selectIsOnline } from '../../connectivity/connectivitySlice';
 import { useTheme } from '../../../theme';
 import type { AppStackParamList, Task } from '../../../types';
 import { TaskItem } from '../components/TaskItem';
@@ -44,7 +46,9 @@ export default function TaskListScreen({
   const theme = useTheme();
   const dispatch = useAppDispatch();
   const filter = useAppSelector(selectTaskFilter);
-  const { tasks, isLoading, error, reload } = useTaskList();
+  const isOnline = useAppSelector(selectIsOnline);
+  const { tasks, isLoading, isRefreshing, error, reload, refresh } =
+    useTaskList();
 
   const visibleTasks = useMemo(() => {
     if (filter === 'active') {
@@ -166,6 +170,18 @@ export default function TaskListScreen({
       padded={false}
       style={{ paddingHorizontal: theme.spacing.md }}
     >
+      {!isOnline ? (
+        <Text
+          style={{
+            color: theme.colors.warning,
+            fontSize: theme.typography.caption.fontSize,
+            lineHeight: theme.typography.caption.lineHeight,
+            marginBottom: theme.spacing.sm,
+          }}
+        >
+          You're offline. Changes are saved on this device.
+        </Text>
+      ) : null}
       <View style={[styles.filters, { marginBottom: theme.spacing.sm }]}>
         {FILTERS.map(option => {
           const selected = option.id === filter;
@@ -212,6 +228,14 @@ export default function TaskListScreen({
         renderItem={renderItem}
         ListEmptyComponent={listEmpty()}
         ItemSeparatorComponent={ItemSeparator}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={refresh}
+            tintColor={theme.colors.primary}
+            colors={[theme.colors.primary]}
+          />
+        }
         contentContainerStyle={[
           { paddingBottom: theme.spacing.md },
           visibleTasks.length === 0 ? styles.listEmpty : null,

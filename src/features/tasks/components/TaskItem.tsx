@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../../../theme';
 import type { Task } from '../../../types';
 import { formatDueAt } from '../../../utils/formatDate';
+import { syncStatusLabel } from '../syncStatusLabel';
 
 interface TaskItemProps {
   task: Task;
@@ -19,11 +20,15 @@ function TaskItemComponent({
 }: TaskItemProps): React.JSX.Element {
   const theme = useTheme();
   const dueLabel = task.dueAt ? formatDueAt(task.dueAt) : '';
+  const syncLabel = syncStatusLabel(task.syncStatus);
+  const accessibilityLabel = [task.title, syncLabel]
+    .filter(Boolean)
+    .join(', ');
 
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={task.title}
+      accessibilityLabel={accessibilityLabel}
       onPress={() => onPress(task.id)}
       onLongPress={() => onDelete(task.id)}
       style={({ pressed }) => [
@@ -87,6 +92,21 @@ function TaskItemComponent({
             }}
           >
             {dueLabel}
+          </Text>
+        ) : null}
+        {syncLabel ? (
+          <Text
+            style={{
+              color:
+                task.syncStatus === 'failed'
+                  ? theme.colors.danger
+                  : theme.colors.warning,
+              fontSize: theme.typography.caption.fontSize,
+              lineHeight: theme.typography.caption.lineHeight,
+              marginTop: theme.spacing.xs,
+            }}
+          >
+            {syncLabel}
           </Text>
         ) : null}
       </View>

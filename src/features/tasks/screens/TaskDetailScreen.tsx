@@ -126,6 +126,7 @@ export default function TaskDetailScreen({
       onSubmitUpdate={handleUpdate}
       onDismissFormError={() => dispatch(taskErrorSet(null))}
       completed={task?.completed}
+      syncStatus={task?.syncStatus}
       onToggleComplete={taskId ? handleToggleComplete : undefined}
       onDelete={taskId ? handleDeletePress : undefined}
     />

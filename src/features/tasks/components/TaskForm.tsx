@@ -8,7 +8,8 @@ import {
 } from 'react-native';
 import { Button, Input, Screen } from '../../../components';
 import { useTheme } from '../../../theme';
-import type { AppError, CreateTaskInput, UpdateTaskInput } from '../../../types';
+import type { AppError, CreateTaskInput, SyncStatus, UpdateTaskInput } from '../../../types';
+import { syncStatusLabel } from '../syncStatusLabel';
 import {
   mapTaskFieldErrors,
   type TaskFieldErrors,
@@ -32,6 +33,7 @@ interface TaskFormProps {
   completed?: boolean;
   onToggleComplete?: () => void | Promise<void>;
   onDelete?: () => void;
+  syncStatus?: SyncStatus;
 }
 
 function parseInitialDueAt(value: string | undefined): Date | null {
@@ -60,9 +62,11 @@ export function TaskForm({
   completed = false,
   onToggleComplete,
   onDelete,
+  syncStatus,
 }: TaskFormProps): React.JSX.Element {
   const theme = useTheme();
   const descriptionRef = useRef<React.ComponentRef<typeof Input>>(null);
+  const syncLabel = syncStatus ? syncStatusLabel(syncStatus) : null;
   const [title, setTitle] = useState(initialTitle);
   const [description, setDescription] = useState(initialDescription);
   const [dueAt, setDueAt] = useState<Date | null>(parseInitialDueAt(initialDueAt));
@@ -129,6 +133,21 @@ export function TaskForm({
         >
           {mode === 'create' ? 'Add task' : 'Edit task'}
         </Text>
+        {syncLabel ? (
+          <Text
+            style={{
+              color:
+                syncStatus === 'failed'
+                  ? theme.colors.danger
+                  : theme.colors.warning,
+              fontSize: theme.typography.caption.fontSize,
+              lineHeight: theme.typography.caption.lineHeight,
+              marginBottom: theme.spacing.md,
+            }}
+          >
+            {syncLabel}
+          </Text>
+        ) : null}
         {formError ? (
           <Text
             style={{
