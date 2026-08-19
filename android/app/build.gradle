@@ -4,15 +4,14 @@ apply plugin: "com.facebook.react"
 apply from: project(':react-native-config').projectDir.getPath() + "/dotenv.gradle"
 
 def rnProjectRoot = rootProject.projectDir.parentFile
-def firebaseSyncOutput = new ByteArrayOutputStream()
-def firebaseSyncResult = exec {
-    workingDir rnProjectRoot
-    commandLine "node", "scripts/sync-firebase-native-config.js"
-    environment "ENVFILE", System.getenv("ENVFILE") ?: ".env.development"
-    standardOutput firebaseSyncOutput
-    errorOutput firebaseSyncOutput
-    ignoreExitValue true
+def firebaseSync = providers.exec {
+    workingDir(rnProjectRoot)
+    commandLine("node", "scripts/sync-firebase-native-config.js")
+    environment("ENVFILE", System.getenv("ENVFILE") ?: ".env.development")
+    ignoreExitValue = true
 }
+def firebaseSyncResult = firebaseSync.result.get()
+def firebaseSyncOutput = firebaseSync.standardOutput.asText.get() + firebaseSync.standardError.asText.get()
 if (firebaseSyncResult.exitValue != 0) {
     throw new GradleException("Failed to sync Firebase native config:\n${firebaseSyncOutput}")
 }
