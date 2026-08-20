@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "100000000002",
+    "project_id": "taskapp-staging",
+    "storage_bucket": "taskapp-staging.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:100000000002:android:bbbbbbbbbbbbbbbb",
+        "android_client_info": {
+          "package_name": "com.taskapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyStgPlaceholderKeyDoNotUse000002"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
